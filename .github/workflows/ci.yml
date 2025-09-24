@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: ["dev"]
+  pull_request:
+    branches: ["dev"]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest   
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Configurer Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: todo-app/requirements.txt
+
+      - name: Installer les dépendances
+        working-directory: todo-app
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Lancer les tests
+        working-directory: todo-app
+        run: python -m pytest -q
+
+      # -------- Notifications Discord --------
+      - name: Notifier Discord (succès)
+        if: ${{ success() }}
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          curl -X POST -H "Content-Type: application/json" \
+            -d "{\"content\":\"✅ **${{ github.workflow }}** réussi\\n• Repo: ${{ github.repository }}\\n• Branche: ${{ github.ref_name }}\\n• Auteur: ${{ github.actor }}\\n• Run: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}" \
+            "$DISCORD_WEBHOOK_URL"
+
+      - name: Notifier Discord (échec)
+        if: ${{ failure() }}
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          curl -X POST -H "Content-Type: application/json" \
+            -d "{\"content\":\"❌ **${{ github.workflow }}** en échec\\n• Repo: ${{ github.repository }}\\n• Branche: ${{ github.ref_name }}\\n• Auteur: ${{ github.actor }}\\n• Run: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}" \
+            "$DISCORD_WEBHOOK_URL"
