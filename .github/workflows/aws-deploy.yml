@@ -1,0 +1,41 @@
+'YAML'
+name: Deploy to EC2 with Ansible
+
+on:
+  push:
+    branches: [ "main" ]   # se déclenche à chaque push sur main
+  workflow_dispatch:        # permet aussi de le lancer manuellement depuis l'onglet Actions
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Ansible
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ansible
+
+      - name: Create SSH key file from secret
+        run: |
+          echo "${{ secrets.AWS_SSH_KEY }}" > aws_key.pem
+          chmod 600 aws_key.pem
+
+      - name: Add EC2 host to known_hosts (avoid interactive prompt)
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H 98.88.29.76 >> ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Run Ansible playbook
+        run: |
+          ansible --version
+          ansible-playbook -i inventory_ci.ini deploy.yml -vv
+
+      - name: Cleanup SSH key
+        if: always()
+        run: rm -f aws_key.pem
+YAML
