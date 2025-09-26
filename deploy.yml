@@ -1,4 +1,3 @@
-'YAML'
 - name: Déploiement ToDoApp sur AWS
   hosts: aws
   become: yes
@@ -22,8 +21,8 @@
           <html lang="fr"><head><meta charset="utf-8">
           <title>ToDoApp - EC2</title></head>
           <body style="font-family: sans-serif">
-            <h1>Déployé avec Ansible 🎉</h1>
-            <p>Instance: 98.88.29.76</p>
+            <h1>Déployé avec Ansible </h1>
+            <p>Instance: 18.209.50.148</p>
           </body></html>
         owner: www-data
         group: www-data
@@ -34,4 +33,3 @@
         name: nginx
         state: started
         enabled: yes
-YAML
